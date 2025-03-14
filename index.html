@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理想课程搜索系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* === 核心样式 === */
+        body {
+            background: #f8f9fa;
+            padding: 2rem 0;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+
+        /* === 电脑端优化 === */
+        @media (min-width: 768px) {
+            .search-container {
+                max-width: 1200px;
+                padding: 2rem;
+            }
+            
+            .search-card {
+                text-align: center;
+                transition: transform 0.3s ease;
+                transform: translateY(0);
+            }
+            
+            .search-card:hover {
+                transform: translateY(-5px);
+            }
+            
+            .form-control {
+                margin: 0 auto;
+                width: 100%;
+                max-width: 400px;
+                padding: 12px 20px;
+                border: 2px solid #e9ecef;
+                border-radius: 10px;
+                transition: border-color 0.3s ease;
+                font-size: 1.1rem;
+            }
+            
+            .form-control:focus {
+                border-color: #86b7fe;
+                box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
+            }
+            
+            #exclude {
+                background-color: #fff8f8;
+                color: #d32f2f;
+                border-color: #ffd7d7;
+            }
+            
+            #exclude::placeholder {
+                color: #ff9e9e;
+            }
+            
+            h2 {
+                font-size: 2.5rem;
+                letter-spacing: -0.5px;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* === 结果展示优化 === */
+        .result-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 0.3rem;  /* 减少列间距 */
+            margin: 0 1rem;  /* 减少左右边距 */
+            padding: 0.3rem 0;  /* 减少上下内边距 */
+            border-bottom: 1px solid #eee;  /* 添加分割线 */
+        }
+
+        .course-title {
+            word-break: break-word;
+            text-align: left;
+            font-size: 1rem;
+            padding-right: 0.3rem;  /* 减少右侧内边距 */
+        }
+
+        .access-btn {
+            background: #0d6efd;
+            color: white !important;
+            padding: 4px 12px;  /* 减小按钮大小 */
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(13,110,253,0.3);
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 0.8rem;
+        }
+
+        /* === 按钮样式优化 === */
+        .search-btn {
+            background: linear-gradient(45deg, #0d6efd, #0b5ed7) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 6px rgba(13,110,253,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(13,110,253,0.4);
+        }
+
+        .access-btn {
+            background: #0d6efd;
+            color: white !important;
+            padding: 6px 16px; /* 减小按钮大小 */
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(13,110,253,0.3);
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 0.8rem; /* 减小按钮字体 */
+        }
+        .access-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13,110,253,0.3);
+        }
+
+        /* === 按钮样式 === */
+        .search-btn {
+            background: #0d6efd !important;
+            border: none;
+            color: white !important;
+            box-shadow: 0 2px 4px rgba(13,110,253,0.3);
+        }
+        /* === 结果提示优化 === */
+        .alert {
+            margin: 0.1rem 0;  /* 上下边距改为0.1rem */
+            padding: 0.3rem 1rem;  /* 减少内边距 */
+            line-height: 1.2;  /* 最小化行高 */
+        }
+
+        /* === 搜索区域优化 === */
+        .mb-3 {
+            margin-top: 0.2rem;  /* 减少搜索按钮上边距 */
+            margin-bottom: 0.2rem !important;  /* 减少搜索区域下边距 */
+        }
+
+        .d-grid {
+            margin-top: 0.2rem;  /* 减少搜索按钮上边距 */
+            margin-bottom: 0.2rem;  /* 减少搜索按钮下边距 */
+        }
+
+        /* === 搜索按钮优化 === */
+        .search-btn {
+            background: linear-gradient(45deg, #0d6efd, #0b5ed7) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 6px rgba(13,110,253,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            margin: 0.3rem 0;  /* 减少按钮上下边距 */
+            letter-spacing: 0.5px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(13,110,253,0.4);
+        }
+
+        .access-btn {
+            background: #0d6efd;
+            color: white !important;
+            padding: 6px 16px; /* 减小按钮大小 */
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(13,110,253,0.3);
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 0.8rem; /* 减小按钮字体 */
+        }
+        .access-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13,110,253,0.3);
+        }
+
+        /* === 按钮样式 === */
+        .search-btn {
+            background: #0d6efd !important;
+            border: none;
+            color: white !important;
+            box-shadow: 0 2px 4px rgba(13,110,253,0.3);
+        }
+        /* === 结果提示优化 === */
+        .alert {
+            margin: 0.1rem 0;  /* 上下边距改为0.1rem */
+            padding: 0.3rem 1rem;  /* 减少内边距 */
+            line-height: 1.2;  /* 最小化行高 */
+        }
+
+        /* === 手机端优化 === */
+        @media (max-width: 767px) {
+            /* 结果展示优化 */
+            .result-row {
+                margin: 0 0.3rem;  /* 减少左右边距 */
+                grid-template-columns: 1fr auto;
+            }
+
+            .course-title {
+                padding-right: 0.2rem;
+            }
+
+            /* 访问按钮优化 */
+            .access-btn {
+                padding: 4px 8px;  /* 减少按钮大小 */
+                writing-mode: vertical-rl;  /* 竖排文字 */
+                text-orientation: upright;
+                letter-spacing: -1px;
+            }
+
+            /* 排除框样式 */
+            #exclude {
+                background-color: #fff8f8;
+                color: #d32f2f;
+                border-color: #ffd7d7;
+            }
+            
+            #exclude::placeholder {
+                color: #ff9e9e !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="search-card">
+            <h2 class="text-center mb-4 text-primary">理想课程搜索系统</h2>
+            
+            <!-- 搜索条件 -->
+            <div class="mb-3">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <input type="text" 
+                               id="keyword1"
+                               class="form-control"
+                               placeholder="关键字1（必填）">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <input type="text" 
+                               id="keyword2"
+                               class="form-control"
+                               placeholder="关键字2（可选）">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <input type="text" 
+                               id="exclude"
+                               class="form-control"
+                               placeholder="排除内容（可选）">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 搜索按钮 -->
+            <div class="d-grid gap-2">
+                <button class="btn btn-lg shadow-sm search-btn" 
+                        onclick="search()">
+                    开始搜索
+                </button>
+            </div>
+
+            <!-- 结果展示 -->
+            <div id="result" class="mt-4">
+                <div class="text-muted text-center">
+                    输入条件后点击搜索按钮
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 回车事件绑定
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') search()
+            })
+        })
+
+        async function search() {
+            const keyword1 = document.getElementById('keyword1').value
+            const keyword2 = document.getElementById('keyword2').value
+            const exclude = document.getElementById('exclude').value
+            const resultDiv = document.getElementById('result')
+
+            try {
+                resultDiv.innerHTML = '<div class="text-center">搜索中...</div>'
+
+                const params = new URLSearchParams({
+                    keyword1,
+                    keyword2,
+                    exclude
+                })
+
+                const response = await fetch(
+                    `http://1d90e320.r34.cpolar.top/search?${params}`,
+                    { mode: 'cors' }
+                )
+
+                if (!response.ok) throw new Error(`请求失败: ${response.status}`)
+                
+                const data = await response.json()
+
+                // 渲染结果
+                if (data.count === 0) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            未找到符合条件的结果
+                        </div>
+                    `
+                } else {
+                    let html = `
+                        <div class="alert alert-success">
+                            找到 ${data.count} 条结果
+                        </div>
+                    `
+
+                    data.data.forEach(item => {
+                        html += `
+                            <div class="result-row">
+                                <div class="course-title">${item.课程名称}</div>
+                                <a href="${item.链接}" 
+                                   target="_blank"
+                                   class="access-btn">
+                                    访问
+                                </a>
+                            </div>
+                        `
+                    })
+
+                    resultDiv.innerHTML = html
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        错误: ${error.message}
+                    </div>
+                `
+            }
+        }
+    </script>
+</body>
+</html>
